@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Giappone 2027 🌸 Risparmi di Coppia (Live Sync)</title>
-    <!-- Tailwind CSS -->
+    <title>Giappone 2027 🌸 Risparmi di Coppia</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
+    <!-- FontAwesome per le icone -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js -->
+    <!-- Chart.js per i grafici -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Noto+Serif+JP:wght@600;900&display=swap" rel="stylesheet">
     
-    <!-- Firebase SDK (Compat Version per semplicità HTML unico) -->
+    <!-- Firebase SDK Compat -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
 
@@ -22,283 +22,357 @@
             theme: {
                 extend: {
                     colors: {
-                        sakura: { 50: '#fff5f7', 100: '#ffe6ec', 200: '#fccad6', 500: '#ff4d79', 600: '#e6003d' }
+                        sakura: { 50: '#fff5f7', 100: '#ffe6ec', 200: '#fccad6', 500: '#ff4d79', 600: '#e6003d' },
+                        japan: { dark: '#0b0f19', card: '#161e2e', border: '#253047', accent: '#ff4d79' }
                     },
-                    fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'], jp: ['Noto Serif JP', 'serif'] }
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                        jp: ['Noto Serif JP', 'serif'],
+                    }
                 }
             }
         }
     </script>
     <style>
-        .progress-bar-glow { box-shadow: 0 0 15px rgba(255, 77, 121, 0.5); }
+        body { background-color: #0b0f19; color: #e2e8f0; }
+        .glass-card { background: rgba(22, 30, 46, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .progress-glow { box-shadow: 0 0 15px rgba(255, 77, 121, 0.4); }
     </style>
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900 min-h-screen text-slate-100 font-sans pb-12">
+<body class="min-h-screen font-sans pb-16">
 
-    <!-- Top Status Bar -->
-    <div class="bg-slate-900/80 backdrop-filter blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
-        <div class="max-w-4xl mx-auto flex justify-between items-center text-xs sm:text-sm">
+    <!-- Top Navigation Bar -->
+    <div class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-6xl mx-auto flex justify-between items-center text-xs sm:text-sm">
             <div class="flex items-center space-x-2">
                 <span class="font-jp text-rose-400 font-bold text-base">日本 2027</span>
-                <span class="text-slate-500">|</span>
+                <span class="text-slate-600">|</span>
                 <span class="text-slate-300 font-medium" id="roomDisplay">Stanza: GIAPPONE-2027</span>
             </div>
-            <button onclick="openRoomModal()" class="flex items-center space-x-1.5 bg-rose-500/10 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full hover:bg-rose-500/20 transition">
-                <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
-                <span id="syncStatusText">Connesso Live</span>
-                <i class="fa-solid fa-gear text-xs ml-1"></i>
-            </button>
+            <div class="flex items-center space-x-2">
+                <button onclick="openModal('currencyModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1 rounded-full text-xs font-semibold transition flex items-center space-x-1">
+                    <span>💴 Cambio Yen</span>
+                </button>
+                <button onclick="openModal('roomModal')" class="flex items-center space-x-1.5 bg-rose-500/10 text-rose-300 border border-rose-500/30 px-3 py-1 rounded-full hover:bg-rose-500/20 transition">
+                    <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span>
+                    <span id="syncStatusText">Connesso Live</span>
+                    <i class="fa-solid fa-gear text-xs ml-1"></i>
+                </button>
+            </div>
         </div>
     </div>
 
-    <div class="max-w-4xl mx-auto px-4 pt-6 space-y-6">
+    <div class="max-w-6xl mx-auto px-4 pt-6 space-y-6">
 
-        <!-- Header Banner -->
-        <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-900/60 to-slate-900/80 border border-rose-500/20 p-6 sm:p-8 shadow-2xl">
+        <!-- Header Hero Banner -->
+        <header class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-rose-950 via-slate-900 to-slate-950 border border-rose-500/20 p-6 sm:p-8 shadow-2xl">
             <div class="absolute -right-6 -bottom-6 text-slate-800/20 font-jp text-9xl select-none pointer-events-none">富士山</div>
             <div class="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-rose-500/20 border border-rose-500/30 text-rose-300 text-xs font-semibold mb-2">
-                        <span>⛩️ Avventura in Giappone</span>
+                        <span>🌸 Tabellone Risparmi Condiviso 🌸</span>
                     </div>
                     <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white">
-                        Risparmi per il Giappone <span class="text-rose-400">🌸</span>
+                        Alla scoperta del Giappone! <span class="text-rose-400 font-jp">日本</span>
                     </h1>
-                    <p class="text-slate-300 text-sm mt-1">Sincronizzazione in tempo reale di coppia.</p>
+                    <p class="text-slate-300 text-sm mt-1">Viaggio di 2 settimane per due persone (Target: 3.980 €).</p>
                 </div>
-                <button onclick="openConfigModal()" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2">
+                <button onclick="openModal('configModal')" class="bg-slate-800/80 hover:bg-slate-700 text-slate-200 border border-slate-700 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center space-x-2">
                     <i class="fa-solid fa-sliders text-rose-400"></i>
-                    <span>Configura Obiettivo</span>
+                    <span>Configura Viaggio</span>
                 </button>
             </div>
 
-            <!-- Main Progress Bar -->
-            <div class="mt-8 space-y-2">
-                <div class="flex justify-between items-end text-sm">
-                    <div>
-                        <span class="text-slate-400 text-xs uppercase tracking-wider">Totale Accumulato</span>
-                        <div class="text-2xl font-bold text-white"><span id="currentTotal">0</span> € <span class="text-slate-400 text-sm font-normal">/ <span id="targetTotal">3980</span> €</span></div>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-2xl font-bold text-rose-400" id="progressPercentage">0%</span>
-                    </div>
-                </div>
-                <!-- Shinkansen Bar -->
-                <div class="relative w-full bg-slate-800 rounded-full h-4 p-0.5 border border-slate-700 overflow-visible">
-                    <div id="progressBar" class="bg-gradient-to-r from-rose-500 to-pink-400 h-full rounded-full transition-all duration-700 relative progress-bar-glow" style="width: 0%">
-                        <div class="absolute -right-3 -top-2.5 bg-slate-900 border border-rose-400 rounded-full p-1 text-xs shadow-md">🚄</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Person Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <!-- Person 1 -->
-            <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-lg flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-blue-500/20 border border-blue-400/30 flex items-center justify-center text-blue-400 font-bold text-lg">👦</div>
-                            <div>
-                                <h2 class="font-bold text-lg text-white" id="p1Name">Lui</h2>
-                                <p class="text-xs text-slate-400">Quota mensile: 100€</p>
+            <!-- Total Savings Main Card -->
+            <div class="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-6 items-center">
+                <div class="lg:col-span-2 space-y-2">
+                    <div class="flex justify-between items-end text-sm">
+                        <div>
+                            <span class="text-slate-400 text-xs uppercase tracking-wider">Risparmiati Finora</span>
+                            <div class="text-3xl font-extrabold text-white">
+                                <span id="currentTotal">0</span> € <span class="text-slate-400 text-sm font-normal">/ <span id="targetTotal">3980</span> €</span>
+                            </div>
+                            <div class="text-xs text-rose-300 mt-0.5">
+                                Valore in Yen: approx. <span id="yenEquivalent">¥0</span>
                             </div>
                         </div>
-                        <span class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full font-medium" id="p1Total">0 €</span>
-                    </div>
-                </div>
-                <div class="mt-4 pt-3 border-t border-slate-700/50 flex space-x-2">
-                    <button onclick="quickAdd('p1', 100)" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white py-2 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center space-x-1 shadow-md">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                        <span>+100 € Rapido</span>
-                    </button>
-                    <button onclick="openCustomAddModal('p1')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-xl text-sm transition">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Person 2 -->
-            <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-lg flex flex-col justify-between">
-                <div>
-                    <div class="flex justify-between items-start mb-3">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-10 h-10 rounded-full bg-rose-500/20 border border-rose-400/30 flex items-center justify-center text-rose-400 font-bold text-lg">👧</div>
-                            <div>
-                                <h2 class="font-bold text-lg text-white" id="p2Name">Lei</h2>
-                                <p class="text-xs text-slate-400">Quota mensile: 100€</p>
-                            </div>
+                        <div class="text-right">
+                            <span class="text-3xl font-bold text-rose-400" id="progressPercentage">0%</span>
+                            <div class="text-xs text-slate-400" id="remainingAmount">Mancano 3.980 €</div>
                         </div>
-                        <span class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-full font-medium" id="p2Total">0 €</span>
+                    </div>
+                    
+                    <!-- Shinkansen Progress Bar -->
+                    <div class="relative w-full bg-slate-800 rounded-full h-5 p-0.5 border border-slate-700 overflow-visible">
+                        <div id="progressBar" class="bg-gradient-to-r from-rose-500 to-pink-400 h-full rounded-full transition-all duration-700 relative progress-glow" style="width: 0%">
+                            <div class="absolute -right-3 -top-2.5 bg-slate-900 border border-rose-400 rounded-full p-1 text-xs shadow-md">🚄</div>
+                            <div class="absolute right-0 top-0 bottom-0 flex items-center pr-2 text-[10px] font-bold text-white opacity-80" id="barText">0%</div>
+                        </div>
+                        <div class="absolute right-2 -top-7 text-xs font-bold text-slate-400" title="Monte Fuji (100%)">🗻 100%</div>
                     </div>
                 </div>
-                <div class="mt-4 pt-3 border-t border-slate-700/50 flex space-x-2">
-                    <button onclick="quickAdd('p2', 100)" class="flex-1 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white py-2 px-3 rounded-xl font-semibold text-sm transition flex items-center justify-center space-x-1 shadow-md">
-                        <i class="fa-solid fa-plus text-xs"></i>
-                        <span>+100 € Rapido</span>
+
+                <!-- Quick Versamento Box -->
+                <div class="bg-slate-900/80 p-4 rounded-2xl border border-slate-800 space-y-3">
+                    <div class="text-xs font-semibold text-rose-300 uppercase tracking-wider flex items-center justify-between">
+                        <span>⚡ Versamento Rapido Mese</span>
+                        <span>100€ / persona</span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="quickAdd('p1', 100)" class="bg-blue-600/20 hover:bg-blue-600/30 text-blue-300 border border-blue-500/30 py-2 px-3 rounded-xl font-semibold text-xs transition text-center">
+                            +100€ <span id="btnP1Name">Lui</span>
+                        </button>
+                        <button onclick="quickAdd('p2', 100)" class="bg-rose-600/20 hover:bg-rose-600/30 text-rose-300 border border-rose-500/30 py-2 px-3 rounded-xl font-semibold text-xs transition text-center">
+                            +100€ <span id="btnP2Name">Lei</span>
+                        </button>
+                    </div>
+                    <button onclick="openModal('addModal')" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs py-1.5 rounded-lg border border-slate-700 transition">
+                        + Altro importo con nota
                     </button>
-                    <button onclick="openCustomAddModal('p2')" class="bg-slate-700 hover:bg-slate-600 text-slate-200 p-2 rounded-xl text-sm transition">
-                        <i class="fa-solid fa-pen"></i>
-                    </button>
                 </div>
             </div>
-        </div>
+        </header>
 
-        <!-- Travel Tip -->
-        <div class="bg-gradient-to-r from-slate-800/80 via-rose-950/40 to-slate-800/80 rounded-2xl p-5 border border-rose-500/30 shadow-xl">
-            <div class="flex justify-between items-center mb-3">
-                <div class="flex items-center space-x-2">
-                    <span class="text-xl">⛩️</span>
-                    <h3 class="font-bold text-rose-300 text-sm uppercase tracking-wider">Pillola di Viaggio #<span id="tipNumber">1</span></h3>
-                </div>
-                <button onclick="displayRandomTip()" class="text-xs bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-3 py-1 rounded-full border border-rose-500/30 transition">
-                    🎲 Nuova Pillola
-                </button>
-            </div>
-            <div class="space-y-1">
-                <h4 class="text-lg font-bold text-white flex items-center space-x-2">
-                    <span id="tipIcon">💬</span>
-                    <span id="tipTitle">Caricamento...</span>
-                </h4>
-                <p class="text-slate-300 text-sm leading-relaxed" id="tipDesc">Un momento...</p>
-            </div>
-        </div>
+        <!-- Main Dashboard Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-        <!-- Budget Breakdown Section -->
-        <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-lg">
-            <h3 class="font-bold text-white mb-4 flex items-center space-x-2">
-                <i class="fa-solid fa-chart-pie text-rose-400"></i>
-                <span>Stima Costi (2 Settimane in 2 persone)</span>
-            </h3>
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 text-center text-xs">
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
-                    <div class="text-slate-400 mb-1">✈️ Voli (A/R)</div>
-                    <div class="font-bold text-slate-100 text-sm">1.600 €</div>
-                </div>
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
-                    <div class="text-slate-400 mb-1">🏨 Alloggi / Ryokan</div>
-                    <div class="font-bold text-slate-100 text-sm">1.200 €</div>
-                </div>
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
-                    <div class="text-slate-400 mb-1">🚅 Trasporti / Treni</div>
-                    <div class="font-bold text-slate-100 text-sm">450 €</div>
-                </div>
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
-                    <div class="text-slate-400 mb-1">🍜 Cibo & Ristoranti</div>
-                    <div class="font-bold text-slate-100 text-sm">500 €</div>
-                </div>
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-slate-700/50">
-                    <div class="text-slate-400 mb-1">🎟️ Attrazioni / Tour</div>
-                    <div class="font-bold text-slate-100 text-sm">230 €</div>
-                </div>
-                <div class="bg-slate-900/60 p-3 rounded-xl border border-rose-500/30 bg-rose-500/5">
-                    <div class="text-rose-300 mb-1">🎯 Totale stimato</div>
-                    <div class="font-bold text-rose-400 text-sm">3.980 €</div>
-                </div>
-            </div>
-        </div>
+            <!-- Left 2 Columns -->
+            <div class="lg:col-span-2 space-y-6">
 
-        <!-- Transaction History -->
-        <div class="bg-slate-800/50 backdrop-blur-md rounded-2xl p-5 border border-slate-700/60 shadow-lg">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="font-bold text-white flex items-center space-x-2">
-                    <i class="fa-solid fa-list-check text-rose-400"></i>
-                    <span>Storico Depositi Sincronizzato</span>
-                </h3>
-                <span class="text-xs text-slate-400" id="txCount">0 depositi</span>
+                <!-- Ripartizione Coppia Card & Chart -->
+                <div class="glass-card rounded-2xl p-5 shadow-lg space-y-4">
+                    <div class="flex justify-between items-center border-b border-slate-700/50 pb-3">
+                        <h2 class="font-bold text-lg text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-users text-rose-400"></i>
+                            <span>Ripartizione Coppia</span>
+                        </h2>
+                        <span class="text-xs text-slate-400">In perfetto equilibrio!</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- Person 1 Card -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-blue-500/20 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs text-slate-400" id="p1CardName">Lui</div>
+                                <div class="text-2xl font-bold text-blue-400" id="p1Total">0 €</div>
+                                <div class="text-[11px] text-slate-500" id="p1TxCount">0 versamenti</div>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-blue-500/10 border border-blue-400/30 flex items-center justify-center text-xl">🌸</div>
+                        </div>
+
+                        <!-- Person 2 Card -->
+                        <div class="bg-slate-900/60 p-4 rounded-xl border border-rose-500/20 flex justify-between items-center">
+                            <div>
+                                <div class="text-xs text-slate-400" id="p2CardName">Lei</div>
+                                <div class="text-2xl font-bold text-rose-400" id="p2Total">0 €</div>
+                                <div class="text-[11px] text-slate-500" id="p2TxCount">0 versamenti</div>
+                            </div>
+                            <div class="w-12 h-12 rounded-full bg-rose-500/10 border border-rose-400/30 flex items-center justify-center text-xl">🍡</div>
+                        </div>
+                    </div>
+
+                    <!-- Doughnut Chart Canvas -->
+                    <div class="h-48 relative flex items-center justify-center pt-2">
+                        <canvas id="savingsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Storico Versamenti -->
+                <div class="glass-card rounded-2xl p-5 shadow-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="font-bold text-lg text-white flex items-center space-x-2">
+                            <i class="fa-solid fa-receipt text-rose-400"></i>
+                            <span>Storico Versamenti Sincronizzato</span>
+                        </h2>
+                        <span class="text-xs text-slate-400" id="txCount">0 depositi</span>
+                    </div>
+                    <div id="txList" class="space-y-2 max-h-72 overflow-y-auto pr-1">
+                        <!-- Transazioni caricate via JS -->
+                    </div>
+                </div>
+
             </div>
-            <div id="txList" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+
+            <!-- Right Column Sidebar -->
+            <div class="space-y-6">
+
+                <!-- Budget per Categoria -->
+                <div class="glass-card rounded-2xl p-5 shadow-lg space-y-3">
+                    <h2 class="font-bold text-white text-base flex items-center space-x-2 border-b border-slate-700/50 pb-2">
+                        <span>🍱 Budget per Categoria</span>
+                    </h2>
+                    <div class="space-y-2.5 text-xs">
+                        <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
+                            <span>✈️ Voli (A/R 2 persone)</span>
+                            <span class="font-bold text-slate-200">1.600 €</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
+                            <span>🏨 Hotel & Ryokan</span>
+                            <span class="font-bold text-slate-200">1.200 €</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
+                            <span>🚅 Shinkansen & Trasporti</span>
+                            <span class="font-bold text-slate-200">450 €</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
+                            <span>🍜 Cibo & Ristoranti</span>
+                            <span class="font-bold text-slate-200">500 €</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-slate-900/50 p-2.5 rounded-xl border border-slate-800">
+                            <span>🎟️ Attrazioni & Tour</span>
+                            <span class="font-bold text-slate-200">230 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tappe Sbloccabili Itinerario -->
+                <div class="glass-card rounded-2xl p-5 shadow-lg space-y-3">
+                    <div class="flex justify-between items-center border-b border-slate-700/50 pb-2">
+                        <h2 class="font-bold text-white text-base flex items-center space-x-2">
+                            <i class="fa-solid fa-map-location-dot text-rose-400"></i>
+                            <span>Tappe Sbloccabili</span>
+                        </h2>
+                        <span class="text-xs text-rose-300 font-semibold" id="unlockedMilestonesCount">0/5</span>
+                    </div>
+                    <div id="milestonesList" class="space-y-2 text-xs">
+                        <!-- Milestones via JS -->
+                    </div>
+                </div>
+
+                <!-- Pillola di Viaggio Card -->
+                <div class="bg-gradient-to-br from-slate-900 via-rose-950/40 to-slate-900 rounded-2xl p-5 border border-rose-500/30 shadow-xl space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs font-bold text-rose-300 uppercase tracking-wider">⛩️ Pillola #<span id="tipNumber">1</span></span>
+                        <button onclick="displayRandomTip()" class="text-[11px] bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 px-2.5 py-0.5 rounded-full border border-rose-500/30 transition">
+                            🎲 Cambia
+                        </button>
+                    </div>
+                    <h3 class="font-bold text-white text-sm flex items-center space-x-2">
+                        <span id="tipIcon">💬</span>
+                        <span id="tipTitle">Consiglio...</span>
+                    </h3>
+                    <p class="text-slate-300 text-xs leading-relaxed" id="tipDesc">
+                        Caricamento consiglio di viaggio...
+                    </p>
+                </div>
+
+            </div>
+
         </div>
 
     </div>
 
     <!-- MODALS -->
-    <div id="configModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
-            <h3 class="text-xl font-bold text-white">Configura Obiettivo Viaggio</h3>
+
+    <!-- Config Modal -->
+    <div id="configModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-xl font-bold text-white">Configura Viaggio</h3>
             <div class="space-y-3">
                 <div>
                     <label class="block text-xs text-slate-400 mb-1">Obiettivo Totale (€)</label>
-                    <input type="number" id="inputTargetTotal" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    <input type="number" id="inputTargetTotal" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Nome Partner 1</label>
-                    <input type="text" id="inputP1Name" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    <label class="block text-xs text-slate-400 mb-1">Nome Persona 1</label>
+                    <input type="text" id="inputP1Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white">
                 </div>
                 <div>
-                    <label class="block text-xs text-slate-400 mb-1">Nome Partner 2</label>
-                    <input type="text" id="inputP2Name" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    <label class="block text-xs text-slate-400 mb-1">Nome Persona 2</label>
+                    <input type="text" id="inputP2Name" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white">
                 </div>
             </div>
             <div class="flex space-x-2 pt-2">
                 <button onclick="saveConfig()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-xl transition">Salva Nel Cloud</button>
-                <button onclick="closeModal('configModal')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Annulla</button>
+                <button onclick="closeModal('configModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Annulla</button>
             </div>
         </div>
     </div>
 
-    <div id="addModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+    <!-- Custom Add Modal -->
+    <div id="addModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
             <h3 class="text-xl font-bold text-white">Aggiungi Deposito</h3>
-            <input type="hidden" id="addPersonKey">
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">Chi effettua il deposito?</label>
+                <select id="addPersonKey" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                    <option value="p1">Persona 1</option>
+                    <option value="p2">Persona 2</option>
+                </select>
+            </div>
             <div>
                 <label class="block text-xs text-slate-400 mb-1">Importo (€)</label>
-                <input type="number" id="addAmount" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white" value="100">
+                <input type="number" id="addAmount" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white" value="100">
             </div>
             <div>
                 <label class="block text-xs text-slate-400 mb-1">Nota (opzionale)</label>
-                <input type="text" id="addNote" placeholder="Es. Stipendio, Regalo, Extra..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white">
+                <input type="text" id="addNote" placeholder="Es. Quota mensile, Regalo, Extra..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white">
             </div>
             <div class="flex space-x-2 pt-2">
-                <button onclick="submitCustomAdd()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-xl transition">Invia al Cloud</button>
-                <button onclick="closeModal('addModal')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Annulla</button>
+                <button onclick="submitCustomAdd()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-xl transition">Salva</button>
+                <button onclick="closeModal('addModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Annulla</button>
             </div>
         </div>
     </div>
 
-    <div id="roomModal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+    <!-- Currency Modal -->
+    <div id="currencyModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-xl font-bold text-white">Tasso Cambio Yen (JPY)</h3>
+            <p class="text-xs text-slate-400">Imposta quanti Yen corrispondono a 1 Euro per calcolare il controvalore dei vostri risparmi.</p>
+            <div>
+                <label class="block text-xs text-slate-400 mb-1">1 EUR = ? JPY</label>
+                <input type="number" id="inputYenRate" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white" value="160">
+            </div>
+            <div class="flex space-x-2 pt-2">
+                <button onclick="saveYenRate()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-xl transition">Salva</button>
+                <button onclick="closeModal('currencyModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Chiudi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Modal -->
+    <div id="roomModal" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
             <h3 class="text-xl font-bold text-white">Codice Stanza Condiviso</h3>
-            <p class="text-xs text-slate-400">
-                Imposta lo stesso codice stanza su entrambi i telefoni per condividere lo stesso salvadanaio.
-            </p>
+            <p class="text-xs text-slate-400">Inserisci lo stesso codice stanza su entrambi i telefoni per condividere il salvadanaio in tempo reale.</p>
             <div>
                 <label class="block text-xs text-slate-400 mb-1">Codice Stanza</label>
-                <input type="text" id="inputRoomCode" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white uppercase font-mono tracking-wider">
+                <input type="text" id="inputRoomCode" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-white uppercase font-mono tracking-wider">
             </div>
             <div class="flex space-x-2 pt-2">
                 <button onclick="changeRoom()" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2 rounded-xl transition">Connetti Stanza</button>
-                <button onclick="closeModal('roomModal')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Chiudi</button>
+                <button onclick="closeModal('roomModal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold px-4 py-2 rounded-xl transition">Chiudi</button>
             </div>
         </div>
     </div>
 
+    <!-- JAVASCRIPT LOGIC -->
     <script>
         // --- 1. FIREBASE CONFIGURATION ---
-        // INCOLLA QUI SOTTO I TUOI DATI PRESI DA FIREBASE CONSOLE:
+        // SOSTITUISCI QUESTI VALORI CON QUELLI DEL TUO PROGETTO FIREBASE:
         const firebaseConfig = {
-            apiKey: "AIzaSyC1otU0ycs7SG12PToveiMxDQLLQp7xUSc",
-            authDomain: "giappone-2027.firebaseapp.com",
-            databaseURL: "https://giappone-2027-default-rtdb.europe-west1.firebasedatabase.app",
-            projectId: "giappone-2027",
-            storageBucket: "giappone-2027.firebasestorage.app",
-            messagingSenderId: "823671711925",
-            appId: "1:823671711925:web:3ecb695dc358af3ccdf6fc"
+            apiKey: "IL_TUO_API_KEY",
+            authDomain: "TUO-PROGETTO.firebaseapp.com",
+            databaseURL: "https://TUO-PROGETTO-default-rtdb.firebaseio.com",
+            projectId: "TUO-PROGETTO",
+            storageBucket: "TUO-PROGETTO.appspot.com",
+            messagingSenderId: "1234567890",
+            appId: "1:1234567890:web:abcdef123456"
         };
 
-        // Inizializzazione Firebase
         let db = null;
         let currentRoom = localStorage.getItem('japan_room_code') || 'GIAPPONE-2027';
+        let yenRate = parseFloat(localStorage.getItem('japan_yen_rate')) || 160;
 
         try {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
         } catch(e) {
-            console.error("Firebase Config Error:", e);
+            console.error("Firebase Initialization Error:", e);
         }
 
-        // --- 2. STATE MANAGEMENT ---
+        // State Data
         let appData = {
             targetTotal: 3980,
             p1Name: 'Lui',
@@ -306,35 +380,108 @@
             transactions: []
         };
 
+        const MILESTONES = [
+            { pct: 20, title: "Tokyo Arrival 🗼", desc: "Voli prenotati e arrivo tra i grattacieli di Shinjuku!" },
+            { pct: 40, title: "Kyoto & Templi ⛩️", desc: "Passeggiata nella foresta di bambù di Arashiyama." },
+            { pct: 60, title: "Monte Fuji & Ryokan ♨️", desc: "Notte in Ryokan tradizionale con vista sul Fuji e Onsen." },
+            { pct: 80, title: "Osaka Street Food 🍡", desc: "Okonomiyaki e Takoyaki a Dotonbori sotto le luci al neon." },
+            { pct: 100, title: "Shinkansen Full Experience 🚄", desc: "Viaggio completo in Giappone tutto pagato!" }
+        ];
+
+        // CATALOGO 70 PILLOLE DI VIAGGIO
         const JAPAN_TIPS = [
+            // Lingua & Comunicazione
             { title: "Arigato Gozaimasu!", desc: "Si pronuncia 'Arigatò Gosaimàs' ed è il modo formale per dire grazie.", icon: "💬" },
-            { title: "Sumimasen", desc: "La parola magica per 'Scusa' o per chiamare il cameriere.", icon: "🗣️" },
-            { title: "Kore o kudasai", desc: "Significa 'Questo per favore'. Basta indicare nel menu!", icon: "👉" },
-            { title: "Niente mance!", desc: "In Giappone la mancia non esiste ed è vista negativamente.", icon: "💴" },
-            { title: "Suica su iPhone", desc: "Aggiungete Suica o Pasmo sul Wallet dell'iPhone per pagare metropolitane e konbini!", icon: "📱" },
-            { title: "Spedizione Bagagli (Takkyubin)", desc: "Spedite le valigie da un hotel all'altro per pochi euro e viaggiate leggeri in treno.", icon: "🧳" },
-            { title: "I fantastici Konbini", desc: "7-Eleven, Lawson e FamilyMart sono aperti 24/7 con cibo economico e squisito.", icon: "🏪" },
-            { title: "Onsen ed Etichetta", desc: "Negli Onsen (terme) si entra nudi dopo essersi lavati prima a fondo.", icon: "♨️" },
-            { title: "Tax-Free Shopping", desc: "Portate sempre il passaporto: sopra i 5.000 yen si risparmia il 10% di tasse nei negozi abilitati!", icon: "🛍️" },
-            { title: "Gachapon!", desc: "Macchinette con sorprese collezionabili a moneta da 100 yen.", icon: "🎰" },
+            { title: "Sumimasen", desc: "La parola magica per 'Scusa' o per richiamare l'attenzione del cameriere.", icon: "🗣️" },
+            { title: "Kore o kudasai", desc: "Significa 'Questo per favore'. Basta indicare qualsiasi foto nel menu!", icon: "👉" },
             { title: "O-kaikei o negai shimasu", desc: "La frase perfetta per chiedere il conto al ristorante.", icon: "🧾" },
-            { title: "Eigo ga hanasemasu ka?", desc: "Chiedere con gentilezza: 'Parla inglese?'. Apprezzeranno tantissimo.", icon: "🌐" },
+            { title: "Eigo ga hanasemasu ka?", desc: "Chiedere con gentilezza: 'Parla inglese?'. Apprezzeranno moltissimo il tentativo.", icon: "🌐" },
             { title: "Oishii!", desc: "Dite 'Oishii!' mentre mangiate per far sapere allo chef che il cibo è delizioso.", icon: "😋" },
             { title: "Gochisousama deshita", desc: "Frase di gratitudine da dire a fine pasto per ringraziare del cibo ricevuto.", icon: "🙏" },
             { title: "Eki wa doko desu ka?", desc: "Utilissimo per strada: 'Dov'è la stazione?'.", icon: "🚉" },
             { title: "Konichiwa & Konbanwa", desc: "'Konnichiwa' si usa di giorno, 'Konbanwa' la sera.", icon: "☀️" },
             { title: "Kanpai!", desc: "Il classico 'Cin Cin!' giapponese quando brindate insieme con birra o sake.", icon: "🍻" },
-            { title: "Silenzio in metropolitana", desc: "Sui treni e in metro è maleducazione parlare al telefono o a voce alta.", icon: "🔇" },
+            
+            // Galateo & Cultura
+            { title: "Niente mance!", desc: "In Giappone la mancia non esiste ed è vista persino in modo negativo o scortese.", icon: "💴" },
+            { title: "Silenzio in metropolitana", desc: "Sui treni e in metro è maleducazione parlare al telefono o a voce troppo alta.", icon: "🔇" },
             { title: "Scarpe fuori!", desc: "Togliete sempre le scarpe prima di entrare in case, ryokan, templi e alcuni ristoranti.", icon: "👟" },
-            { title: "Non camminare mangiando", desc: "In Giappone si mangia vicino al locale o al distributore, non camminando per strada.", icon: "🍡" }
+            { title: "Non camminare mangiando", desc: "In Giappone si mangia vicino al locale o al distributore, non si cammina masticando.", icon: "🍡" },
+            { title: "Bacchette (Hashi) Rules", desc: "Mai infilzare le bacchette verticalmente nel riso: ricorda un rito funebre.", icon: "🥢" },
+            { title: "Onsen ed Etichetta", desc: "Negli Onsen (terme) si entra completamente nudi dopo essersi lavati prima a fondo.", icon: "♨️" },
+            { title: "Pattumiere introvabili", desc: "Ci sono pochissimi cestini per strada: portate sempre una piccolissima bustina con voi.", icon: "🗑️" },
+            { title: "Fila ordinata", desc: "Tutti rispettano scrupolosamente le linee a terra per salire sui treni.", icon: "🚶‍♂️" },
+            { title: "Scala mobile", desc: "A Tokyo ci si mette a sinistra (destra libera). A Osaka l'opposto (a destra)!", icon: "🪜" },
+            { title: "Pagamento sul vassoietto", desc: "Nei negozi si appoggiano soldi e carta nel vassoietto sul bancone, non in mano.", icon: "💳" },
+
+            // Cibo & Gastronomia
+            { title: "I fantastici Konbini", desc: "7-Eleven, Lawson e FamilyMart sono aperti 24/7 con cibo fresco ed economico.", icon: "🏪" },
+            { title: "Ramen Slurp!", desc: "Fare rumore mentre si aspirano i noodles al ramen è segno di apprezzamento per lo chef.", icon: "🍜" },
+            { title: "Depachika", desc: "I seminterrati dei grandi magazzini offrono cibo gourmet scontato la sera.", icon: "🍱" },
+            { title: "Izakaya: I pub giapponesi", desc: "Locali tradizionali dove ordinare piattini da condividere (Yakitori, edamame) e birra.", icon: "🏮" },
+            { title: "Okonomiyaki", desc: "La tipica 'pizza/frittata' giapponese di Osaka da cucinare alla piastra.", icon: "🍳" },
+            { title: "Kaitenzushi", desc: "Ristoranti di sushi sul nastro trasportatore: economico, divertente e ordinabile via tablet.", icon: "🍣" },
+            { title: "Matcha dappertutto", desc: "Troverete il tè verde Matcha in gelati, KitKat, dolci e cappuccini squisiti.", icon: "🍵" },
+            { title: "Acqua e Tè gratis", desc: "Quasi tutti i ristoranti offrono acqua fredda o tè caldo gratis non appena vi sedete.", icon: "🫖" },
+            { title: "Distributori di bevande calde", desc: "Nei vending machine i prodotti col bollino ROSSO sono bevande calde (caffè, tè, zuppe)!", icon: "☕" },
+            { title: "Taiyaki", desc: "Il famoso dolce a forma di pesce cotto alla piastra e ripieno di crema o cioccolato.", icon: "🐟" },
+            { title: "Takoyaki", desc: "Polpette calde di polpo tipiche di Osaka servite con salsa speciale e fiocchi di bonito.", icon: "🐙" },
+            { title: "Tonkatsu", desc: "Cotoletta di maiale alta, croccantissima servita con cavolo capuccio e salsa barbecue densa.", icon: "🥩" },
+            { title: "Melonpan", desc: "Dolce soffice a forma di melone con una crosta croccante di biscotto in superficie.", icon: "🍞" },
+
+            // Trasporti & Logistica
+            { title: "Suica su iPhone", desc: "Aggiungete Suica o Pasmo sul Wallet dell'iPhone per pagare metropolitane e konbini!", icon: "📱" },
+            { title: "Spedizione Bagagli (Takkyubin)", desc: "Spedite le valigie grandi da un hotel all'altro per pochi euro e viaggiate leggeri.", icon: "🧳" },
+            { title: "Shinkansen Puntualissimi", desc: "I treni proiettile hanno un ritardo medio annuale inferiore ai 30 secondi!", icon: "🚄" },
+            { title: "Taxi con porte automatiche", desc: "Non toccate le maniglie del taxi: il conducente apre e chiude la porta automaticamente!", icon: "🚕" },
+            { title: "Japan Travel by NAVITIME", desc: "L'app indispensabile per muoversi in treno, scoprendo la carrozza migliore in cui salire.", icon: "🗺️" },
+            { title: "Coin Lockers", desc: "In tutte le stazioni trovate armadietti a moneta o carta IC per lasciare gli zaini.", icon: "🔐" },
+            { title: "Vagoni Rosa (Women Only)", desc: "Nelle ore di punta in metro ci sono vagoni riservati esclusivamente alle donne.", icon: "👩" },
+            { title: "Carte IC ricaricabili", desc: "Si possono usare anche per pagare nei distributori automatici per strada.", icon: "💳" },
+            { title: "Metropolitane private", desc: "A Tokyo ci sono diverse compagnie di metro: l'abbonamento di una non sempre vale per l'altra.", icon: "🚇" },
+            { title: "Treni notturni chiusi", desc: "I treni chiudono intorno a mezzanotte e riaprono verso le 5 del mattino.", icon: "🌙" },
+
+            // Shopping & Curiosità
+            { title: "Tax-Free Shopping", desc: "Portate sempre il passaporto: sopra 5.000 yen si risparmia il 10% di tasse nei negozi abilitati!", icon: "🛍️" },
+            { title: "Gachapon!", desc: "I distributori di palline con figurine collezionabili per monete da 100 yen.", icon: "🎰" },
+            { title: "Omikuji (Biglietti di sorte)", desc: "Nei santuari estraete il vostro biglietto della fortuna. Se è brutto, legatelo al supporto!", icon: "📜" },
+            { title: "Akihabara & Manga", desc: "Il quartiere della cultura pop, dei videogiochi retro, delle figure e dei maid cafè.", icon: "🎮" },
+            { title: "Don Quijote (Donki)", desc: "I megastore aperti h24 dove trovare di tutto: dagli snack strani ai souvenir.", icon: "🐧" },
+            { title: "Timbri delle Stazioni (Eki Stamp)", desc: "Portate un taccuino: quasi ogni stazione ha un timbro gratuito da collezionare!", icon: "💮" },
+            { title: "Purikura", desc: "Le cabine fotografiche giapponesi che modificano gli occhi e aggiungono sticker divertenti.", icon: "📸" },
+            { title: "Monete pesanti", desc: "Terrete tantissime monete da 100 e 500 yen. Procuratevi un borsellino dedicato!", icon: "👛" },
+            { title: "Kombini Fried Chicken", desc: "Il pollo fritto del Lawson (FamiChiki / L-Chiki) è una vera delizia famosa in tutto il mondo.", icon: "🍗" },
+            { title: "Distribuzione distributori", desc: "C'è un distributore automatico ogni circa 23 abitanti in tutto il Giappone!", icon: "🥤" },
+
+            // Esperienze & Luoghi
+            { title: "Crossing di Shibuya", desc: "Attraversate l'incrocio pedonale più affollato del mondo fuori dalla stazione di Shibuya.", icon: "🚶‍♀️" },
+            { title: "Statua di Hachiko", desc: "Visitate la celebre statua del cane fedele proprio all'uscita della stazione di Shibuya.", icon: "🐕" },
+            { title: "Fushimi Inari a Kyoto", desc: "Camminate sotto i migliaia di Torii rossi arancioni inerpicati sulla montagna.", icon: "⛩️" },
+            { title: "Nara ed i Cervi", desc: "A Nara i cervi girano liberi nel parco e s'inchinano se offrite loro i biscotti Shika-senbei!", icon: "🦌" },
+            { title: "TeamLab Planets", desc: "Un'esperienza d'arte digitale immersiva a Tokyo dove si cammina a piedi nudi nell'acqua.", icon: "✨" },
+            { title: "Bosco di Bambù ad Arashiyama", desc: "Passeggiate tra i fusti di bambù giganti a Kyoto al mattino presto per evitare la folla.", icon: "🎋" },
+            { title: "Dotonbori a Osaka", desc: "Il quartiere illuminato dalle lanterne al neon e dall'insegna del Glico Man.", icon: "🌃" },
+            { title: "Castello di Osaka", desc: "Uno dei castelli più iconici del paese circondato da fossati e parchi verdi.", icon: "🏯" },
+            { title: "Parco Ueno a Tokyo", desc: "Uno dei parchi più celebri per ammirare i ciliegi in fiore durante la primavera.", icon: "🌸" },
+            { title: "Mercato di Tsukiji Outer Market", desc: "Perfetto per fare colazione la mattina con spiedini di pesce fresco e frittate Tamagoyaki.", icon: "🐟" },
+            { title: "Harajuku & Takeshita Street", desc: "Il centro della moda giovanile alternativa, dei travestimenti Cosplay e delle crêpes giganti.", icon: "🎀" },
+            { title: "Kinkaku-ji (Padiglione d'Oro)", desc: "Il tempio zen a Kyoto ricoperto interamente da foglie d'oro che si specchia nel lago.", icon: "✨" },
+            { title: "Gion a Kyoto", desc: "Il quartiere tradizionale delle Geishe (Geiko e Maiko) tra case in legno e stradine storiche.", icon: "👘" },
+            { title: "Roppongi Hills View", desc: "Salite in cima al ponte di osservazione per ammirare la Tokyo Tower illuminata di notte.", icon: "🗼" },
+            { title: "Hakone & Vista Fuji", desc: "Famosa località termale vicino a Tokyo da cui ammirare il Monte Fuji sul lago Ashi.", icon: "🗻" },
+            { title: "Mascotte Giapponesi (Yuru-chara)", desc: "Ogni città, prefettura e persino stazione ha la propria dolcissima mascotte ufficiale!", icon: "🧸" },
+            { title: "Bagni Pubblici Sento", desc: "Oltre agli Onsen termali, nei quartieri residenziali trovate i tradizionali bagni di quartiere.", icon: "🧼" }
         ];
 
+        let savingsChart = null;
+
         document.addEventListener('DOMContentLoaded', () => {
+            initChart();
             displayRandomTip();
             listenToRoom(currentRoom);
         });
 
-        // --- 3. CLOUD REALTIME SYNC ---
+        // --- 2. FIREBASE REALTIME LISTENER ---
         function listenToRoom(roomCode) {
             currentRoom = roomCode;
             localStorage.setItem('japan_room_code', roomCode);
@@ -396,42 +543,60 @@
             db.ref('rooms/' + currentRoom + '/transactions/' + id).remove();
         }
 
-        // --- 4. UI RENDER ---
+        // --- 3. UI RENDER & UPDATES ---
         function updateUI() {
             const p1Total = appData.transactions.filter(t => t.personKey === 'p1').reduce((s, t) => s + t.amount, 0);
             const p2Total = appData.transactions.filter(t => t.personKey === 'p2').reduce((s, t) => s + t.amount, 0);
+            const p1Count = appData.transactions.filter(t => t.personKey === 'p1').length;
+            const p2Count = appData.transactions.filter(t => t.personKey === 'p2').length;
+            
             const total = p1Total + p2Total;
             const target = appData.targetTotal;
+            const remaining = Math.max(0, target - total);
             const pct = Math.min(100, Math.round((total / target) * 100));
 
+            // Numbers
             document.getElementById('currentTotal').innerText = total.toLocaleString();
             document.getElementById('targetTotal').innerText = target.toLocaleString();
             document.getElementById('progressPercentage').innerText = `${pct}%`;
+            document.getElementById('remainingAmount').innerText = `Mancano ${remaining.toLocaleString()} €`;
             document.getElementById('progressBar').style.width = `${pct}%`;
+            document.getElementById('barText').innerText = `${pct}%`;
 
-            document.getElementById('p1Name').innerText = appData.p1Name;
-            document.getElementById('p2Name').innerText = appData.p2Name;
-            document.getElementById('p1Total').innerText = `${p1Total} €`;
-            document.getElementById('p2Total').innerText = `${p2Total} €`;
+            // Yen Equivalent
+            const yenVal = Math.round(total * yenRate);
+            document.getElementById('yenEquivalent').innerText = `¥${yenVal.toLocaleString()}`;
 
+            // Persons
+            document.getElementById('btnP1Name').innerText = appData.p1Name;
+            document.getElementById('btnP2Name').innerText = appData.p2Name;
+            document.getElementById('p1CardName').innerText = appData.p1Name;
+            document.getElementById('p2CardName').innerText = appData.p2Name;
+            document.getElementById('p1Total').innerText = `${p1Total.toLocaleString()} €`;
+            document.getElementById('p2Total').innerText = `${p2Total.toLocaleString()} €`;
+            document.getElementById('p1TxCount').innerText = `${p1Count} versamenti`;
+            document.getElementById('p2TxCount').innerText = `${p2Count} versamenti`;
+
+            // History List
             const txList = document.getElementById('txList');
             document.getElementById('txCount').innerText = `${appData.transactions.length} depositi`;
 
             if (appData.transactions.length === 0) {
-                txList.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nessun deposito presente in questa stanza.</p>`;
+                txList.innerHTML = `<p class="text-xs text-slate-500 italic text-center py-4">Nessun deposito registrato.</p>`;
             } else {
                 txList.innerHTML = appData.transactions.slice().reverse().map(t => {
                     const personName = t.personKey === 'p1' ? appData.p1Name : appData.p2Name;
+                    const isP1 = t.personKey === 'p1';
                     return `
-                        <div class="flex justify-between items-center bg-slate-900/60 p-3 rounded-xl border border-slate-700/40 text-xs">
+                        <div class="flex justify-between items-center bg-slate-900/60 p-3 rounded-xl border border-slate-800 text-xs">
                             <div class="flex items-center space-x-3">
-                                <span class="font-bold ${t.personKey === 'p1' ? 'text-blue-400' : 'text-rose-400'}">${personName}</span>
-                                <span class="text-slate-300">+${t.amount} €</span>
+                                <span class="font-bold ${isP1 ? 'text-blue-400' : 'text-rose-400'}">${personName}</span>
+                                <span class="text-slate-200 font-semibold">+${t.amount} €</span>
                                 ${t.note ? `<span class="text-slate-500 text-[11px]">(${t.note})</span>` : ''}
                             </div>
                             <div class="flex items-center space-x-2">
                                 <span class="text-slate-500 text-[10px]">${t.date || ''}</span>
-                                <button onclick="removeTransactionFromCloud('${t.id}')" class="text-slate-500 hover:text-rose-400 transition ml-2">
+                                <button onclick="removeTransactionFromCloud('${t.id}')" class="text-slate-600 hover:text-rose-400 transition ml-2">
                                     <i class="fa-solid fa-trash-can"></i>
                                 </button>
                             </div>
@@ -439,6 +604,67 @@
                     `;
                 }).join('');
             }
+
+            // Render Milestones
+            renderMilestones(pct);
+
+            // Update Chart
+            updateChart(p1Total, p2Total, remaining);
+        }
+
+        function renderMilestones(currentPct) {
+            const list = document.getElementById('milestonesList');
+            let unlockedCount = 0;
+
+            list.innerHTML = MILESTONES.map(m => {
+                const isUnlocked = currentPct >= m.pct;
+                if (isUnlocked) unlockedCount++;
+                return `
+                    <div class="p-2.5 rounded-xl border ${isUnlocked ? 'bg-rose-500/10 border-rose-500/30' : 'bg-slate-900/40 border-slate-800 opacity-60'} flex items-start space-x-2.5">
+                        <div class="text-lg">${isUnlocked ? '🔓' : '🔒'}</div>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold ${isUnlocked ? 'text-rose-300' : 'text-slate-400'}">${m.title}</span>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded ${isUnlocked ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-500'}">${m.pct}%</span>
+                            </div>
+                            <p class="text-[11px] text-slate-400 mt-0.5">${m.desc}</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('unlockedMilestonesCount').innerText = `${unlockedCount}/5`;
+        }
+
+        // --- 4. CHART.JS INTEGRATION ---
+        function initChart() {
+            const ctx = document.getElementById('savingsChart').getContext('2d');
+            savingsChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Persona 1', 'Persona 2', 'Rimanente'],
+                    datasets: [{
+                        data: [0, 0, 3980],
+                        backgroundColor: ['#60a5fa', '#f43f5e', '#1e293b'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    cutout: '75%'
+                }
+            });
+        }
+
+        function updateChart(p1, p2, rem) {
+            if (!savingsChart) return;
+            savingsChart.data.labels = [appData.p1Name, appData.p2Name, 'Rimanente'];
+            savingsChart.data.datasets[0].data = [p1, p2, rem];
+            savingsChart.update();
         }
 
         // --- 5. ACTIONS ---
@@ -448,14 +674,9 @@
             addTransactionToCloud({
                 personKey: personKey,
                 amount: amount,
-                note: 'Deposito mensile rapido',
+                note: 'Quota mensile',
                 date: dateStr
             });
-        }
-
-        function openCustomAddModal(personKey) {
-            document.getElementById('addPersonKey').value = personKey;
-            document.getElementById('addModal').classList.remove('hidden');
         }
 
         function submitCustomAdd() {
@@ -486,11 +707,21 @@
             document.getElementById('tipDesc').innerText = tip.desc;
         }
 
-        function openConfigModal() {
-            document.getElementById('inputTargetTotal').value = appData.targetTotal;
-            document.getElementById('inputP1Name').value = appData.p1Name;
-            document.getElementById('inputP2Name').value = appData.p2Name;
-            document.getElementById('configModal').classList.remove('hidden');
+        function openModal(id) {
+            if (id === 'configModal') {
+                document.getElementById('inputTargetTotal').value = appData.targetTotal;
+                document.getElementById('inputP1Name').value = appData.p1Name;
+                document.getElementById('inputP2Name').value = appData.p2Name;
+            } else if (id === 'roomModal') {
+                document.getElementById('inputRoomCode').value = currentRoom;
+            } else if (id === 'currencyModal') {
+                document.getElementById('inputYenRate').value = yenRate;
+            }
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
         }
 
         function saveConfig() {
@@ -501,19 +732,17 @@
             closeModal('configModal');
         }
 
-        function openRoomModal() {
-            document.getElementById('inputRoomCode').value = currentRoom;
-            document.getElementById('roomModal').classList.remove('hidden');
+        function saveYenRate() {
+            yenRate = parseFloat(document.getElementById('inputYenRate').value) || 160;
+            localStorage.setItem('japan_yen_rate', yenRate);
+            updateUI();
+            closeModal('currencyModal');
         }
 
         function changeRoom() {
             const newRoom = document.getElementById('inputRoomCode').value.trim().toUpperCase() || 'GIAPPONE-2027';
             listenToRoom(newRoom);
             closeModal('roomModal');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
         }
     </script>
 </body>
