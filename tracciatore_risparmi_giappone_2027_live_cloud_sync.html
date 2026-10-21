@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giappone 2027 🇯🇵 - Risparmi di Coppia (Live Sync)</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Serif+JP:wght@600;700;900&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        sakura: {
+                            50: '#fff5f7',
+                            100: '#ffe6ed',
+                            200: '#fecddb',
+                            300: '#fda4bf',
+                            400: '#fb7198',
+                            500: '#f43f72',
+                            600: '#e11d59',
+                            700: '#be123c',
+                        },
+                        torii: {
+                            500: '#e11d48',
+                            600: '#dc2626',
+                            700: '#b91c1c',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['"Noto Serif JP"', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Ambient Petals floating animation */
+        .sakura-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            overflow: hidden;
+        }
+        .petal {
+            position: absolute;
+            background: linear-gradient(135deg, #fecddb, #fda4bf);
+            border-radius: 15px 0 15px 0;
+            opacity: 0.5;
+            animation: fall linear infinite, sway ease-in-out infinite alternate;
+        }
+
+        @keyframes fall {
+            0% { top: -5%; }
+            100% { top: 105%; }
+        }
+        @keyframes sway {
+            0% { transform: translateX(0) rotate(0deg); }
+            100% { transform: translateX(80px) rotate(360deg); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(254, 205, 219, 0.2);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #fb7198;
+            border-radius: 10px;
+        }
+
+        /* Glassmorphism styling */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(254, 205, 219, 0.6);
+        }
+        .dark .glass-card {
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Shinkansen train animation */
+        .shinkansen-train {
+            transition: left 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans min-h-screen pb-16 relative overflow-x-hidden">
+
+    <!-- Petali Sfondo Animati -->
+    <div class="sakura-container" id="sakura-container"></div>
+
+    <div class="relative z-10 max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+
+        <!-- Navigation & Cloud Status Bar -->
+        <div class="flex flex-wrap items-center justify-between gap-4 mb-6 pb-4 border-b border-slate-200/60 dark:border-slate-800">
+            <div class="flex items-center space-x-3">
+                <span class="text-2xl">🇯🇵</span>
+                <span class="font-serif font-bold text-slate-900 dark:text-white text-lg sm:text-xl tracking-tight">Giappone <span class="text-sakura-500">2027</span></span>
+            </div>
+
+            <!-- Central Sync Badge Indicator -->
+            <div onclick="openSyncModal()" class="cursor-pointer group flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sakura-400 transition shadow-sm">
+                <span id="sync-status-dot" class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span id="sync-status-text" class="text-xs font-semibold text-slate-700 dark:text-slate-200">Live Sync: Connesso</span>
+                <span id="room-badge" class="text-[11px] font-mono px-2 py-0.5 rounded-md bg-sakura-50 text-sakura-600 dark:bg-sakura-950 dark:text-sakura-300 font-bold ml-1">GIAPPONE-2027</span>
+                <i data-lucide="share-2" class="w-3.5 h-3.5 text-slate-400 group-hover:text-sakura-500"></i>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+                <!-- Toggle Theme -->
+                <button onclick="toggleDarkMode()" class="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sakura-400 transition shadow-sm text-slate-600 dark:text-slate-300">
+                    <i data-lucide="moon" class="w-4 h-4 dark:hidden"></i>
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+                </button>
+
+                <!-- Currency Exchange Quick View -->
+                <button onclick="openYenModal()" class="flex items-center gap-2 px-3 py-2 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sakura-400 transition shadow-sm text-xs font-semibold">
+                    <span class="text-amber-500 font-bold">¥</span>
+                    <span id="rate-badge">1€ = 160 JPY</span>
+                    <i data-lucide="refresh-cw" class="w-3 h-3 text-slate-400"></i>
+                </button>
+
+                <!-- Impostazioni Viaggio -->
+                <button onclick="openConfigModal()" class="flex items-center gap-1.5 px-3.5 py-2 rounded-2xl bg-sakura-500 hover:bg-sakura-600 text-white transition shadow-sm text-xs font-bold">
+                    <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+                    <span class="hidden sm:inline">Configura Viaggio</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Header Hero -->
+        <header class="text-center my-4 sm:my-8 relative">
+            <div class="inline-flex items-center justify-center space-x-2 px-4 py-1.5 rounded-full bg-sakura-100 dark:bg-sakura-950/60 border border-sakura-200 dark:border-sakura-800/50 text-sakura-600 dark:text-sakura-300 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-3">
+                <span>🌸 Tabellone Risparmi Condiviso in Tempo Reale 🌸</span>
+            </div>
+            <h1 class="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white font-serif tracking-tight">
+                Verso Tokyo e Kyoto <span class="text-sakura-500">日本</span>
+            </h1>
+            <p class="mt-2 text-sm sm:text-base text-slate-600 dark:text-slate-400 max-w-xl mx-auto">
+                Tieni traccia dei risparmi di coppia! Ogni modifica si aggiornerà all'istante anche sul telefono del tuo partner.
+            </p>
+        </header>
+
+        <!-- DASHBOARD GRID -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- COLONNA SINISTRA & CENTRALE (2 Cols) -->
+            <div class="lg:col-span-2 space-y-6">
+
+                <!-- 1. CARTA PROGRESSO SHINKANSEN (MAIN GOAL) -->
+                <div class="glass-card rounded-3xl p-6 sm:p-8 shadow-sm relative overflow-hidden">
+                    
+                    <!-- Header Goal Info -->
+                    <div class="flex flex-wrap justify-between items-start gap-4 mb-6">
+                        <div>
+                            <span class="text-xs font-bold tracking-wider text-slate-400 dark:text-slate-500 uppercase">Risparmiati Finora</span>
+                            <div class="flex items-baseline gap-2 mt-1">
+                                <span class="text-4xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tight" id="display-total-saved">€0</span>
+                                <span class="text-sm font-medium text-slate-500">/ <span id="display-target-goal" class="font-bold text-slate-700 dark:text-slate-300">€2.400</span></span>
+                            </div>
+                            <div class="text-xs text-amber-600 dark:text-amber-400 font-medium mt-1 flex items-center gap-1" id="yen-equivalent-display">
+                                <span>Equivalent in Yen: approx. ¥0</span>
+                            </div>
+                        </div>
+
+                        <!-- Badge Countdown -->
+                        <div class="bg-gradient-to-br from-sakura-50 to-white dark:from-slate-900 dark:to-slate-900/80 border border-sakura-200 dark:border-sakura-900/50 rounded-2xl p-3.5 text-right shadow-sm">
+                            <div class="flex items-center gap-1.5 text-sakura-600 dark:text-sakura-400 justify-end font-semibold text-xs uppercase tracking-wider">
+                                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+                                <span>Countdown Viaggio</span>
+                            </div>
+                            <span class="text-xl sm:text-2xl font-extrabold text-slate-800 dark:text-slate-100 mt-0.5 block" id="countdown-days">-- Giorni</span>
+                            <span class="text-[11px] text-slate-400" id="display-target-date">Data: Ottobre 2027</span>
+                        </div>
+                    </div>
+
+                    <!-- BARRA DI PROGRESSO SHINKANSEN ANIMATA -->
+                    <div class="space-y-3 my-6">
+                        <div class="flex justify-between items-center text-xs font-bold">
+                            <span class="text-sakura-600 dark:text-sakura-400" id="display-percentage">0% Completato</span>
+                            <span class="text-slate-500 dark:text-slate-400" id="display-remaining">Mancano €2.400</span>
+                        </div>
+
+                        <!-- Tracciato Shinkansen -->
+                        <div class="relative w-full bg-slate-100 dark:bg-slate-800/80 rounded-2xl h-8 border border-slate-200 dark:border-slate-700/60 p-1 flex items-center">
+                            
+                            <!-- Barra riempimento -->
+                            <div id="shinkansen-bar" class="h-full bg-gradient-to-r from-sakura-400 via-sakura-500 to-torii-600 rounded-xl transition-all duration-700 ease-out shadow-sm" style="width: 0%"></div>
+                            
+                            <!-- Icona Treno Proiettile -->
+                            <div id="shinkansen-icon" class="shinkansen-train absolute top-1/2 -translate-y-1/2 text-xl filter drop-shadow-md z-10" style="left: 0%;">
+                                🚅
+                            </div>
+
+                            <!-- Destinazione Monte Fuji a fine barra -->
+                            <div class="absolute right-2 top-1/2 -translate-y-1/2 text-lg" title="Monte Fuji (100%)">
+                                🗻
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PULSANTI DI VERSAMENTO RAPIDO MENSILE -->
+                    <div class="pt-6 border-t border-slate-100 dark:border-slate-800">
+                        <div class="flex items-center justify-between mb-3">
+                            <span class="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i> Versamento Rapido Mese Corrente
+                            </span>
+                            <span class="text-[11px] text-slate-400" id="monthly-rate-info">Quota: 100€ / persona</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <!-- Button Persona 1 -->
+                            <button onclick="quickDeposit('p1')" class="group relative flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 hover:bg-sakura-50 dark:hover:bg-sakura-950/40 border border-slate-200 dark:border-slate-800 hover:border-sakura-300 transition duration-200 active:scale-[0.98]">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-2xl bg-sakura-100 dark:bg-sakura-900/50 text-sakura-600 dark:text-sakura-300 flex items-center justify-center font-bold text-xs" id="avatar-p1">
+                                        P1
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="text-[11px] text-slate-400">Versa quota per</div>
+                                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-sakura-600 dark:group-hover:text-sakura-400" id="display-p1-name">Persona 1</div>
+                                    </div>
+                                </div>
+                                <span class="bg-sakura-500 group-hover:bg-sakura-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1">
+                                    +<span id="p1-quick-val">100</span>€ <i data-lucide="plus" class="w-3 h-3"></i>
+                                </span>
+                            </button>
+
+                            <!-- Button Persona 2 -->
+                            <button onclick="quickDeposit('p2')" class="group relative flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-900/60 hover:bg-sakura-50 dark:hover:bg-sakura-950/40 border border-slate-200 dark:border-slate-800 hover:border-sakura-300 transition duration-200 active:scale-[0.98]">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-2xl bg-rose-100 dark:bg-rose-900/50 text-rose-600 dark:text-rose-300 flex items-center justify-center font-bold text-xs" id="avatar-p2">
+                                        P2
+                                    </div>
+                                    <div class="text-left">
+                                        <div class="text-[11px] text-slate-400">Versa quota per</div>
+                                        <div class="text-sm font-bold text-slate-800 dark:text-slate-200 group-hover:text-sakura-600 dark:group-hover:text-sakura-400" id="display-p2-name">Persona 2</div>
+                                    </div>
+                                </div>
+                                <span class="bg-sakura-500 group-hover:bg-sakura-600 text-white font-bold text-xs px-3.5 py-2 rounded-xl transition shadow-sm flex items-center gap-1">
+                                    +<span id="p2-quick-val">100</span>€ <i data-lucide="plus" class="w-3 h-3"></i>
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="mt-4 text-center">
+                            <button onclick="openTransactionModal()" class="text-xs font-semibold text-slate-500 hover:text-sakura-600 dark:hover:text-sakura-400 transition inline-flex items-center gap-1.5">
+                                <i data-lucide="plus-circle" class="w-4 h-4 text-sakura-500"></i>
+                                <span>Aggiungi versamento personalizzato / Extra</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. RIPARTIZIONE DI COPPIA & GRAFICO APPORTI -->
+                <div class="glass-card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="pie-chart" class="w-5 h-5 text-sakura-500"></i> Ripartizione Coppia
+                        </h2>
+                        <span class="text-xs text-slate-400" id="savings-parity-status">In perfetto equilibrio!</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                        <!-- Card P1 -->
+                        <div class="bg-white/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400" id="p1-stats-name">Persona 1</span>
+                                <div class="text-2xl font-black text-slate-800 dark:text-slate-100 mt-0.5" id="p1-stats-total">€0</div>
+                                <span class="text-[11px] text-slate-400" id="p1-stats-count">0 versamenti</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-sakura-50 dark:bg-sakura-950 border border-sakura-200 dark:border-sakura-800 flex items-center justify-center text-sakura-600 text-base font-bold">
+                                🌸
+                            </div>
+                        </div>
+
+                        <!-- Card P2 -->
+                        <div class="bg-white/80 dark:bg-slate-900/80 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm flex items-center justify-between">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400" id="p2-stats-name">Persona 2</span>
+                                <div class="text-2xl font-black text-slate-800 dark:text-slate-100 mt-0.5" id="p2-stats-total">€0</div>
+                                <span class="text-[11px] text-slate-400" id="p2-stats-count">0 versamenti</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-2xl bg-rose-50 dark:bg-rose-950 border border-rose-200 dark:border-rose-800 flex items-center justify-center text-rose-600 text-base font-bold">
+                                🍡
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Canvas Grafico -->
+                    <div class="h-56 w-full relative">
+                        <canvas id="savingsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. REGISTRO STORICO TRANSAZIONI -->
+                <div class="glass-card rounded-3xl p-6 shadow-sm">
+                    <div class="flex flex-wrap justify-between items-center gap-2 mb-4">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="history" class="w-5 h-5 text-sakura-500"></i> Storico Versamenti
+                        </h2>
+                        <div class="flex items-center gap-2">
+                            <select id="filter-person" onchange="renderHistory()" class="text-xs bg-slate-100 dark:bg-slate-800 border-none rounded-xl px-3 py-1.5 focus:ring-2 focus:ring-sakura-400">
+                                <option value="all">Tutti i versamenti</option>
+                                <option value="p1" id="filter-p1-opt">Solo Persona 1</option>
+                                <option value="p2" id="filter-p2-opt">Solo Persona 2</option>
+                            </select>
+                            <span class="text-xs text-slate-400" id="history-total-count">0 voci</span>
+                        </div>
+                    </div>
+
+                    <div id="history-list" class="space-y-2.5 max-h-80 overflow-y-auto pr-1 custom-scrollbar">
+                        <!-- Popolato dinamicamente da JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- COLONNA DESTRA (1 Col) -->
+            <div class="space-y-6">
+
+                <!-- 1. CATEGORIE DI SPESA VIAGGIO -->
+                <div class="glass-card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                <span>🍱</span> Budget per Categoria
+                            </h2>
+                            <p class="text-xs text-slate-400">Ripartizione automatica del budget</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4" id="categories-container">
+                        <!-- Popolato da JS -->
+                    </div>
+                </div>
+
+                <!-- 2. TAPPE E TRAGUARDI SBLOCCABILI (MILESTONES) -->
+                <div class="glass-card rounded-3xl p-6 shadow-sm">
+                    <div class="flex justify-between items-center mb-3">
+                        <h2 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                            <i data-lucide="map-pin" class="w-5 h-5 text-torii-500"></i> Tappe Sbloccabili
+                        </h2>
+                        <span class="text-xs font-bold text-sakura-500" id="unlocked-milestones-count">0/5 Sbloccate</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mb-4">Avanza coi risparmi per sbloccare le tappe dell'itinerario!</p>
+
+                    <div class="space-y-3" id="milestones-container">
+                        <!-- Popolato da JS -->
+                    </div>
+                </div>
+
+                <!-- 3. CURIOSITÀ GIAPPONESI -->
+                <div class="glass-card rounded-3xl p-6 bg-gradient-to-br from-sakura-500 via-sakura-600 to-torii-700 text-white relative overflow-hidden shadow-lg border-none">
+                    <div class="absolute -right-3 -bottom-3 opacity-15 text-7xl select-none pointer-events-none">
+                        ⛩️
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sakura-100 mb-2">
+                        <i data-lucide="sparkles" class="w-4 h-4 text-amber-300"></i> Pillola di Viaggio
+                    </div>
+                    <p class="text-xs leading-relaxed text-sakura-50 font-medium min-h-[50px]" id="japan-tip-text">
+                        "Prendete la Suica o Pasmo card appena arrivati: si usano per metropolitane, bus e persino per i distributori automatici di bevande!"
+                    </p>
+                    <button onclick="nextTip()" class="mt-3 text-[11px] bg-white/20 hover:bg-white/30 backdrop-blur-md text-white px-3 py-1.5 rounded-xl font-semibold transition inline-flex items-center gap-1.5">
+                        <i data-lucide="refresh-cw" class="w-3 h-3"></i> Prossimo consiglio
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- MODALE LIVE SYNC / CONDIVISIONE STANZA -->
+    <div id="modal-sync" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="share-2" class="w-5 h-5 text-sakura-500"></i> Sincronizzazione di Coppia
+                </h3>
+                <button onclick="closeSyncModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    Inserisci lo stesso <b>Codice Stanza</b> sul tuo telefono e su quello della tua ragazza per sincronizzare all'istante ogni risparmio in tempo reale!
+                </p>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Codice Stanza Viaggio (Room ID)</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="sync-room-input" uppercase class="w-full text-sm font-mono p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400 uppercase font-bold" placeholder="GIAPPONE-2027">
+                        <button onclick="generateRandomRoom()" class="px-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-100 text-xs font-bold">Casual</button>
+                    </div>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button onclick="copyRoomCode()" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 flex items-center justify-center gap-1">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copia Codice
+                    </button>
+                    <button onclick="applyRoomCode()" class="w-1/2 py-2.5 rounded-xl bg-sakura-500 hover:bg-sakura-600 text-white text-xs font-bold shadow-md">
+                        Connetti Stanza
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE CONFIGURAZIONE VIAGGIO -->
+    <div id="modal-config" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800 relative">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <i data-lucide="settings" class="w-5 h-5 text-sakura-500"></i> Configura Viaggio
+                </h3>
+                <button onclick="closeConfigModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveConfig(event)" class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nome Persona 1</label>
+                        <input type="text" id="cfg-p1" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nome Persona 2</label>
+                        <input type="text" id="cfg-p2" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Quota Mensile a Testa (€)</label>
+                    <input type="number" id="cfg-monthly-quota" min="10" step="5" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Obiettivo Budget Totale (€)</label>
+                    <input type="number" id="cfg-target-goal" min="100" step="100" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Data Partenza Viaggio</label>
+                    <input type="date" id="cfg-target-date" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                </div>
+
+                <div class="pt-3 flex gap-2">
+                    <button type="button" onclick="closeConfigModal()" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Annulla</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-sakura-500 hover:bg-sakura-600 text-white text-xs font-bold shadow-md">Salva Modifiche</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE AGGIUNGI / MODIFICA TRANSAZIONE -->
+    <div id="modal-transaction" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2" id="modal-tx-title">
+                    <i data-lucide="plus-circle" class="w-5 h-5 text-sakura-500"></i> Nuova Transazione
+                </h3>
+                <button onclick="closeTransactionModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <form onsubmit="saveTransaction(event)" class="space-y-4">
+                <input type="hidden" id="tx-id">
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Chi effettua il versamento?</label>
+                    <select id="tx-person" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                        <!-- Popolato dinamicamente -->
+                    </select>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Importo (€)</label>
+                        <input type="number" id="tx-amount" min="1" step="0.01" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Data Versamento</label>
+                        <input type="date" id="tx-date" required class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nota / Causale (Opzionale)</label>
+                    <input type="text" id="tx-note" placeholder="es. Quota Mese, Extra Regalo..." class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400">
+                </div>
+
+                <div class="pt-3 flex gap-2">
+                    <button type="button" onclick="closeTransactionModal()" class="w-1/2 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800">Annulla</button>
+                    <button type="submit" class="w-1/2 py-2.5 rounded-xl bg-sakura-500 hover:bg-sakura-600 text-white text-xs font-bold shadow-md">Salva Versamento</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODALE CAMBIO YEN -->
+    <div id="modal-yen" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-800">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span class="text-amber-500 font-bold">¥</span> Cambio Yen (JPY)
+                </h3>
+                <button onclick="closeYenModal()" class="text-slate-400 hover:text-slate-600">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Tasso di cambio (1 Euro = ? JPY)</label>
+                    <input type="number" id="yen-rate-input" step="0.5" class="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 focus:ring-2 focus:ring-sakura-400 font-bold">
+                </div>
+
+                <div class="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl text-xs text-amber-800 dark:text-amber-200">
+                    Imposta il tasso per calcolare a quanti Yen corrispondono i vostri risparmi in Euro.
+                </div>
+
+                <button onclick="saveYenRate()" class="w-full py-2.5 rounded-xl bg-sakura-500 hover:bg-sakura-600 text-white font-bold text-xs">Aggiorna Tasso</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE MODULES -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // APP CONFIG & ENVIRONMENT
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'japan-savings-default-app';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "demo-api-key",
+            authDomain: "demo.firebaseapp.com",
+            projectId: "demo-project",
+            storageBucket: "demo.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:demo"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentRoomId = localStorage.getItem('japan_savings_room_id') || 'GIAPPONE-2027';
+        let unsubscribeFirestore = null;
+        let currentUser = null;
+
+        // Default State
+        const DEFAULT_STATE = {
+            config: {
+                p1Name: 'Marco',
+                p2Name: 'Giulia',
+                monthlyQuota: 100,
+                targetGoal: 2400,
+                targetDate: '2027-10-01',
+                jpyRate: 160
+            },
+            transactions: [
+                { id: 'tx-1', person: 'p1', amount: 100, date: '2026-09-01', note: 'Quota Settembre' },
+                { id: 'tx-2', person: 'p2', amount: 100, date: '2026-09-01', note: 'Quota Settembre' }
+            ],
+            darkMode: false
+        };
+
+        window.appData = JSON.parse(localStorage.getItem('japan_savings_app_data')) || DEFAULT_STATE;
+
+        // AUTHENTICATION & LISTENERS
+        async function initAuthAndSync() {
+            try {
+                updateSyncStatus('connecting', 'Connessione Cloud...');
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (err) {
+                console.warn("Auth fallback to local mode:", err);
+                updateSyncStatus('offline', 'Modalità Offline');
+            }
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                subscribeToRoom(currentRoomId);
+            } else {
+                updateSyncStatus('offline', 'Modalità Offline');
+            }
+        });
+
+        // FIRESTORE LIVE SYNC (RULE 1 PATH MANDATE)
+        function subscribeToRoom(roomId) {
+            if (!currentUser) return;
+            
+            if (unsubscribeFirestore) {
+                unsubscribeFirestore();
+            }
+
+            currentRoomId = roomId.toUpperCase().trim();
+            localStorage.setItem('japan_savings_room_id', currentRoomId);
+            document.getElementById('room-badge').innerText = currentRoomId;
+
+            // Correct Firestore Path Structure according to Rule 1
+            const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+
+            updateSyncStatus('connecting', 'Sincronizzazione...');
+
+            unsubscribeFirestore = onSnapshot(roomDocRef, 
+                (docSnap) => {
+                    if (docSnap.exists()) {
+                        const cloudData = docSnap.data();
+                        if (cloudData && cloudData.appData) {
+                            window.appData = cloudData.appData;
+                            localStorage.setItem('japan_savings_app_data', JSON.stringify(window.appData));
+                            window.updateAllUI();
+                        }
+                    } else {
+                        // Document doesn't exist yet, push initial state
+                        pushDataToCloud();
+                    }
+                    updateSyncStatus('online', 'Live Sync: Connesso');
+                },
+                (error) => {
+                    console.error("Firestore error:", error);
+                    updateSyncStatus('offline', 'Sync Error / Offline');
+                }
+            );
+        }
+
+        async function pushDataToCloud() {
+            if (!currentUser) return;
+            try {
+                updateSyncStatus('connecting', 'Salvataggio...');
+                const roomDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoomId);
+                await setDoc(roomDocRef, {
+                    appData: window.appData,
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: currentUser.uid
+                });
+                updateSyncStatus('online', 'Live Sync: Connesso');
+            } catch (err) {
+                console.error("Error pushing data:", err);
+                updateSyncStatus('offline', 'Errore Inoltro');
+            }
+        }
+
+        function updateSyncStatus(state, message) {
+            const dot = document.getElementById('sync-status-dot');
+            const text = document.getElementById('sync-status-text');
+
+            text.innerText = message;
+            dot.className = "w-2.5 h-2.5 rounded-full ";
+
+            if (state === 'online') {
+                dot.className += "bg-emerald-500 animate-pulse";
+            } else if (state === 'connecting') {
+                dot.className += "bg-amber-500 animate-ping";
+            } else {
+                dot.className += "bg-red-500";
+            }
+        }
+
+        // Global functions exposed to window
+        window.saveData = function() {
+            localStorage.setItem('japan_savings_app_data', JSON.stringify(window.appData));
+            window.updateAllUI();
+            pushDataToCloud();
+        };
+
+        window.connectToRoom = function(newRoomId) {
+            if (newRoomId && newRoomId.trim() !== '') {
+                subscribeToRoom(newRoomId);
+            }
+        };
+
+        initAuthAndSync();
+    </script>
+
+    <!-- UI APP LOGIC -->
+    <script>
+        const japanTips = [
+            "Prendete la Suica o Pasmo card appena arrivati: si usano per metropolitane, bus e distributori automatici!",
+            "I convogli dello Shinkansen sono puntualissimi al secondo: arrivate sempre in stazione in leggero anticipo.",
+            "Portate sempre con voi contanti Yen per i piccoli chioschi di Street Food e per i templi tradizionali.",
+            "Nei conbini (7-Eleven, Lawson, FamilyMart) si mangia benissimo spendendo pochissimi Euro!",
+            "In Giappone non è d'uso lasciare la mancia nei ristoranti: potrebbe persino creare imbarazzo.",
+            "Ricordate di prenotare i biglietti per il Museo Ghibli e la Tokyo Skytree con largo anticipo!"
+        ];
+        let currentTipIdx = 0;
+
+        const categoriesDef = [
+            { id: 'flights', name: 'Voli Aerei', weight: 0.35, icon: 'plane' },
+            { id: 'hotels', name: 'Hotel & Ryokan', weight: 0.30, icon: 'building-2' },
+            { id: 'trains', name: 'JR Pass / Shinkansen', weight: 0.15, icon: 'train' },
+            { id: 'food', name: 'Cibo, Ramen & Sushi', weight: 0.12, icon: 'utensils' },
+            { id: 'emergency', name: 'Fondo Emergenza', weight: 0.08, icon: 'shield-alert' }
+        ];
+
+        const milestonesDef = [
+            { pct: 20, name: 'Biglietti Volo Prenotabili', icon: '✈️' },
+            { pct: 40, name: 'Soggiorno Ryokan a Kyoto', icon: '🏯' },
+            { pct: 60, name: 'Pass Shinkansen Sbloccato', icon: '🚅' },
+            { pct: 80, name: 'Budget Ramen & Experience OK', icon: '🍜' },
+            { pct: 100, name: 'SOGNO GIAPPONE COMPLETATO!', icon: '⛩️' }
+        ];
+
+        let savingsChart = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initSakuraPetals();
+            applyTheme();
+            updateAllUI();
+            lucide.createIcons();
+        });
+
+        function updateAllUI() {
+            if (!window.appData) return;
+            const config = window.appData.config;
+            const transactions = window.appData.transactions;
+
+            const p1Total = transactions.filter(t => t.person === 'p1').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            const p2Total = transactions.filter(t => t.person === 'p2').reduce((sum, t) => sum + parseFloat(t.amount), 0);
+            const grandTotal = p1Total + p2Total;
+            const targetGoal = parseFloat(config.targetGoal) || 2400;
+            const remaining = Math.max(0, targetGoal - grandTotal);
+            const percentage = Math.min(100, Math.round((grandTotal / targetGoal) * 100));
+
+            const jpyRate = parseFloat(config.jpyRate) || 160;
+            const totalJpy = Math.round(grandTotal * jpyRate);
+
+            document.getElementById('display-p1-name').innerText = config.p1Name;
+            document.getElementById('display-p2-name').innerText = config.p2Name;
+            document.getElementById('p1-stats-name').innerText = config.p1Name;
+            document.getElementById('p2-stats-name').innerText = config.p2Name;
+            document.getElementById('avatar-p1').innerText = getInitials(config.p1Name);
+            document.getElementById('avatar-p2').innerText = getInitials(config.p2Name);
+
+            document.getElementById('filter-p1-opt').innerText = `Solo ${config.p1Name}`;
+            document.getElementById('filter-p2-opt').innerText = `Solo ${config.p2Name}`;
+
+            document.getElementById('p1-quick-val').innerText = config.monthlyQuota;
+            document.getElementById('p2-quick-val').innerText = config.monthlyQuota;
+            document.getElementById('monthly-rate-info').innerText = `Quota: ${config.monthlyQuota}€ / persona`;
+
+            document.getElementById('display-total-saved').innerText = `€${formatEuro(grandTotal)}`;
+            document.getElementById('display-target-goal').innerText = `€${formatEuro(targetGoal)}`;
+            document.getElementById('display-percentage').innerText = `${percentage}% Completato`;
+            document.getElementById('display-remaining').innerText = remaining > 0 ? `Mancano €${formatEuro(remaining)}` : 'Obiettivo Raggiunto! 🎉';
+            document.getElementById('yen-equivalent-display').innerText = `Valore stimato: approx. ¥${totalJpy.toLocaleString('it-IT')}`;
+            document.getElementById('rate-badge').innerText = `1€ = ${jpyRate} JPY`;
+
+            document.getElementById('shinkansen-bar').style.width = `${percentage}%`;
+            document.getElementById('shinkansen-icon').style.left = `calc(${Math.min(92, percentage)}% - 10px)`;
+
+            updateCountdown(config.targetDate);
+
+            document.getElementById('p1-stats-total').innerText = `€${formatEuro(p1Total)}`;
+            document.getElementById('p2-stats-total').innerText = `€${formatEuro(p2Total)}`;
+            document.getElementById('p1-stats-count').innerText = `${transactions.filter(t => t.person === 'p1').length} versamenti`;
+            document.getElementById('p2-stats-count').innerText = `${transactions.filter(t => t.person === 'p2').length} versamenti`;
+
+            const diff = Math.abs(p1Total - p2Total);
+            const parityEl = document.getElementById('savings-parity-status');
+            if (diff === 0) {
+                parityEl.innerText = "In perfetto equilibrio! ⚖️";
+            } else {
+                const ahead = p1Total > p2Total ? config.p1Name : config.p2Name;
+                parityEl.innerText = `${ahead} avanti di €${formatEuro(diff)}`;
+            }
+
+            renderHistory();
+            renderCategories(grandTotal, targetGoal);
+            renderMilestones(percentage);
+            renderChart(p1Total, p2Total, config.p1Name, config.p2Name);
+        }
+
+        function formatEuro(val) {
+            return Number(val).toLocaleString('it-IT', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+        }
+
+        function getInitials(name) {
+            return name ? name.trim().slice(0, 2).toUpperCase() : 'P';
+        }
+
+        function updateCountdown(targetDateStr) {
+            if (!targetDateStr) return;
+            const target = new Date(targetDateStr);
+            const now = new Date();
+            const diffTime = target - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            const daysEl = document.getElementById('countdown-days');
+            const targetDisplayEl = document.getElementById('display-target-date');
+
+            if (diffDays > 0) {
+                daysEl.innerText = `${diffDays} Giorni`;
+            } else {
+                daysEl.innerText = `Partenza Imminente! ✈️`;
+            }
+
+            const options = { month: 'long', year: 'numeric' };
+            targetDisplayEl.innerText = `Partenza: ${target.toLocaleDateString('it-IT', options)}`;
+        }
+
+        function quickDeposit(person) {
+            const quota = parseFloat(window.appData.config.monthlyQuota) || 100;
+            const now = new Date();
+            const dateStr = now.toISOString().split('T')[0];
+            const monthName = now.toLocaleDateString('it-IT', { month: 'long' });
+            
+            const newTx = {
+                id: 'tx-' + Date.now(),
+                person: person,
+                amount: quota,
+                date: dateStr,
+                note: `Quota ${monthName.charAt(0).toUpperCase() + monthName.slice(1)}`
+            };
+
+            window.appData.transactions.unshift(newTx);
+            window.saveData();
+
+            confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 } });
+        }
+
+        function renderHistory() {
+            const listEl = document.getElementById('history-list');
+            const filterPerson = document.getElementById('filter-person').value;
+
+            let filtered = window.appData.transactions;
+            if (filterPerson !== 'all') {
+                filtered = filtered.filter(t => t.person === filterPerson);
+            }
+
+            document.getElementById('history-total-count').innerText = `${filtered.length} voci`;
+
+            if (filtered.length === 0) {
+                listEl.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">Nessun versamento trovato per questa selezione.</div>`;
+                return;
+            }
+
+            listEl.innerHTML = filtered.map(tx => {
+                const isP1 = tx.person === 'p1';
+                const pName = isP1 ? window.appData.config.p1Name : window.appData.config.p2Name;
+                const formattedDate = new Date(tx.date).toLocaleDateString('it-IT', { day: '2-digit', month: 'short', year: 'numeric' });
+
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-2xl bg-white/70 dark:bg-slate-900/60 border border-slate-100 dark:border-slate-800 hover:border-sakura-200 transition">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-xl ${isP1 ? 'bg-sakura-100 text-sakura-600 dark:bg-sakura-950 dark:text-sakura-300' : 'bg-rose-100 text-rose-600 dark:bg-rose-950 dark:text-rose-300'} flex items-center justify-center font-bold text-xs">
+                                ${getInitials(pName)}
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-slate-800 dark:text-slate-100">${pName}</span>
+                                    <span class="text-[10px] text-slate-400">${formattedDate}</span>
+                                </div>
+                                <div class="text-[11px] text-slate-500 dark:text-slate-400">${tx.note || 'Versamento'}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-extrabold text-slate-900 dark:text-white">+€${formatEuro(tx.amount)}</span>
+                            <div class="flex items-center gap-1">
+                                <button onclick="editTransaction('${tx.id}')" class="p-1 text-slate-400 hover:text-sakura-500 transition">
+                                    <i data-lucide="edit-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <button onclick="deleteTransaction('${tx.id}')" class="p-1 text-slate-400 hover:text-red-500 transition">
+                                    <i data-lucide="trash" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function openTransactionModal(editId = null) {
+            const modal = document.getElementById('modal-transaction');
+            const selectEl = document.getElementById('tx-person');
+
+            selectEl.innerHTML = `
+                <option value="p1">${window.appData.config.p1Name}</option>
+                <option value="p2">${window.appData.config.p2Name}</option>
+            `;
+
+            if (editId) {
+                const tx = window.appData.transactions.find(t => t.id === editId);
+                if (tx) {
+                    document.getElementById('modal-tx-title').innerText = 'Modifica Versamento';
+                    document.getElementById('tx-id').value = tx.id;
+                    document.getElementById('tx-person').value = tx.person;
+                    document.getElementById('tx-amount').value = tx.amount;
+                    document.getElementById('tx-date').value = tx.date;
+                    document.getElementById('tx-note').value = tx.note || '';
+                }
+            } else {
+                document.getElementById('modal-tx-title').innerText = 'Nuova Transazione';
+                document.getElementById('tx-id').value = '';
+                document.getElementById('tx-amount').value = window.appData.config.monthlyQuota;
+                document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+                document.getElementById('tx-note').value = '';
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeTransactionModal() {
+            document.getElementById('modal-transaction').classList.add('hidden');
+        }
+
+        function saveTransaction(e) {
+            e.preventDefault();
+            const id = document.getElementById('tx-id').value;
+            const person = document.getElementById('tx-person').value;
+            const amount = parseFloat(document.getElementById('tx-amount').value);
+            const date = document.getElementById('tx-date').value;
+            const note = document.getElementById('tx-note').value;
+
+            if (id) {
+                const idx = window.appData.transactions.findIndex(t => t.id === id);
+                if (idx !== -1) {
+                    window.appData.transactions[idx] = { id, person, amount, date, note };
+                }
+            } else {
+                window.appData.transactions.unshift({
+                    id: 'tx-' + Date.now(),
+                    person,
+                    amount,
+                    date,
+                    note
+                });
+            }
+
+            closeTransactionModal();
+            window.saveData();
+        }
+
+        function editTransaction(id) {
+            openTransactionModal(id);
+        }
+
+        function deleteTransaction(id) {
+            if (confirm("Vuoi eliminare questo versamento dallo storico condiviso?")) {
+                window.appData.transactions = window.appData.transactions.filter(t => t.id !== id);
+                window.saveData();
+            }
+        }
+
+        function renderCategories(saved, goal) {
+            const container = document.getElementById('categories-container');
+            container.innerHTML = categoriesDef.map(cat => {
+                const catTarget = goal * cat.weight;
+                const catSaved = saved * cat.weight;
+                const pct = Math.min(100, Math.round((catSaved / catTarget) * 100));
+
+                return `
+                    <div class="space-y-1.5">
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                                <i data-lucide="${cat.icon}" class="w-3.5 h-3.5 text-sakura-500"></i> ${cat.name}
+                            </span>
+                            <span class="text-slate-500 font-medium">€${formatEuro(catSaved)} / €${formatEuro(catTarget)} (${pct}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                            <div class="bg-sakura-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            lucide.createIcons();
+        }
+
+        function renderMilestones(currentPct) {
+            const container = document.getElementById('milestones-container');
+            let unlockedCount = 0;
+
+            container.innerHTML = milestonesDef.map(m => {
+                const isUnlocked = currentPct >= m.pct;
+                if (isUnlocked) unlockedCount++;
+
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-2xl ${isUnlocked ? 'bg-sakura-50/80 dark:bg-sakura-950/40 border border-sakura-200 dark:border-sakura-800' : 'bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-800 opacity-60'}">
+                        <div class="flex items-center gap-2.5">
+                            <span class="text-xl">${m.icon}</span>
+                            <div>
+                                <div class="text-xs font-bold ${isUnlocked ? 'text-slate-800 dark:text-slate-100' : 'text-slate-500'}">${m.name}</div>
+                                <div class="text-[10px] text-slate-400">Traguardo al ${m.pct}% dell'obiettivo</div>
+                            </div>
+                        </div>
+                        <span class="text-xs font-bold ${isUnlocked ? 'text-sakura-600 dark:text-sakura-400' : 'text-slate-400'}">
+                            ${isUnlocked ? 'Sbloccato! ✨' : 'Bloccato 🔒'}
+                        </span>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('unlocked-milestones-count').innerText = `${unlockedCount}/${milestonesDef.length} Sbloccate`;
+        }
+
+        function renderChart(p1Total, p2Total, p1Name, p2Name) {
+            const ctx = document.getElementById('savingsChart').getContext('2d');
+            if (savingsChart) savingsChart.destroy();
+
+            savingsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: [p1Name, p2Name],
+                    datasets: [{
+                        label: 'Totale Risparmiato (€)',
+                        data: [p1Total, p2Total],
+                        backgroundColor: ['rgba(244, 63, 114, 0.85)', 'rgba(251, 113, 152, 0.85)'],
+                        borderColor: ['rgba(225, 29, 89, 1)', 'rgba(244, 63, 114, 1)'],
+                        borderWidth: 1.5,
+                        borderRadius: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(150, 150, 150, 0.1)' } },
+                        x: { grid: { display: false } }
+                    }
+                }
+            });
+        }
+
+        // --- CONFIG & SYNC MODALS ---
+        function openConfigModal() {
+            document.getElementById('cfg-p1').value = window.appData.config.p1Name;
+            document.getElementById('cfg-p2').value = window.appData.config.p2Name;
+            document.getElementById('cfg-monthly-quota').value = window.appData.config.monthlyQuota;
+            document.getElementById('cfg-target-goal').value = window.appData.config.targetGoal;
+            document.getElementById('cfg-target-date').value = window.appData.config.targetDate;
+
+            document.getElementById('modal-config').classList.remove('hidden');
+        }
+
+        function closeConfigModal() {
+            document.getElementById('modal-config').classList.add('hidden');
+        }
+
+        function saveConfig(e) {
+            e.preventDefault();
+            window.appData.config.p1Name = document.getElementById('cfg-p1').value.trim();
+            window.appData.config.p2Name = document.getElementById('cfg-p2').value.trim();
+            window.appData.config.monthlyQuota = parseFloat(document.getElementById('cfg-monthly-quota').value);
+            window.appData.config.targetGoal = parseFloat(document.getElementById('cfg-target-goal').value);
+            window.appData.config.targetDate = document.getElementById('cfg-target-date').value;
+
+            closeConfigModal();
+            window.saveData();
+        }
+
+        function openSyncModal() {
+            const currentRoom = localStorage.getItem('japan_savings_room_id') || 'GIAPPONE-2027';
+            document.getElementById('sync-room-input').value = currentRoom;
+            document.getElementById('modal-sync').classList.remove('hidden');
+        }
+
+        function closeSyncModal() {
+            document.getElementById('modal-sync').classList.add('hidden');
+        }
+
+        function generateRandomRoom() {
+            const rand = 'JP-' + Math.floor(1000 + Math.random() * 9000);
+            document.getElementById('sync-room-input').value = rand;
+        }
+
+        function copyRoomCode() {
+            const val = document.getElementById('sync-room-input').value.toUpperCase().trim();
+            document.querySelector('#sync-room-input').select();
+            document.execCommand('copy');
+            alert(`Codice stanza "${val}" copiato negli appunti! Invialo su WhatsApp.`);
+        }
+
+        function applyRoomCode() {
+            const val = document.getElementById('sync-room-input').value.toUpperCase().trim();
+            if (val) {
+                window.connectToRoom(val);
+                closeSyncModal();
+            }
+        }
+
+        function openYenModal() {
+            document.getElementById('yen-rate-input').value = window.appData.config.jpyRate || 160;
+            document.getElementById('modal-yen').classList.remove('hidden');
+        }
+
+        function closeYenModal() {
+            document.getElementById('modal-yen').classList.add('hidden');
+        }
+
+        function saveYenRate() {
+            const val = parseFloat(document.getElementById('yen-rate-input').value);
+            if (val > 0) {
+                window.appData.config.jpyRate = val;
+                closeYenModal();
+                window.saveData();
+            }
+        }
+
+        function nextTip() {
+            currentTipIdx = (currentTipIdx + 1) % japanTips.length;
+            document.getElementById('japan-tip-text').innerText = `"${japanTips[currentTipIdx]}"`;
+        }
+
+        function toggleDarkMode() {
+            window.appData.darkMode = !window.appData.darkMode;
+            applyTheme();
+            window.saveData();
+        }
+
+        function applyTheme() {
+            if (window.appData && window.appData.darkMode) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        }
+
+        function initSakuraPetals() {
+            const container = document.getElementById('sakura-container');
+            for (let i = 0; i < 12; i++) {
+                const petal = document.createElement('div');
+                petal.className = 'petal';
+                const size = Math.random() * 10 + 8;
+                petal.style.width = `${size}px`;
+                petal.style.height = `${size * 1.4}px`;
+                petal.style.left = `${Math.random() * 100}%`;
+                petal.style.animationDuration = `${Math.random() * 8 + 6}s, ${Math.random() * 3 + 2}s`;
+                petal.style.animationDelay = `${Math.random() * 5}s`;
+                container.appendChild(petal);
+            }
+        }
+    </script>
+</body>
+</html>
